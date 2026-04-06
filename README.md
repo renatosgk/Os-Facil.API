@@ -1,58 +1,109 @@
-#  OsFacil API: Sistema de Gerenciamento de Ordens de Serviço para Automóveis
+# 🔧 OsFacil API — Sistema de Gerenciamento de Ordens de Serviço Automotivo
 
-O **OsFacil API** é uma  API RESTful desenvolvida em Spring Boot, focada no **Gerenciamento de Ordens de Serviço (OS)** para o setor automotivo. A aplicação permite a administração completa de veículos, produtos, clientes, funcionários e o ciclo de vida das ordens de serviço.
+O **OsFacil API** é uma API RESTful desenvolvida em **Spring Boot**, voltada para o gerenciamento completo de ordens de serviço no setor automotivo. A aplicação cobre todo o ciclo operacional de uma oficina: cadastro de clientes, veículos, produtos, funcionários e o acompanhamento das ordens de serviço do início ao fim.
 
-**🔗 Link da API Publicada:** (https://osfacil.onrender.com)
-
-## Funcionalidades Principais
-
-* **Gerenciamento Completo de Cadastros:** CRUD (Criação, Leitura, Atualização, Deleção) para **Veículos**, **Produtos**, **Clientes** e **Funcionários**.
-* **Controle de Ordem de Serviço:** Criação, acompanhamento de status e finalização de **Ordens de Serviço**.
-* **Autenticação Segura (JWT):** Clientes e usuários podem realizar login, gerando um **JSON Web Token (JWT)** para acesso seguro aos recursos da API 
-* **Design RESTful Avançado (HATEOAS):** As respostas da API incluem *links* de hipermídia, guiando o cliente sobre as ações possíveis e navegabilidade.
+🔗 **API em produção:** [https://osfacil.onrender.com](https://osfacil.onrender.com)  
+📄 **Documentação Swagger:** [https://osfacil.onrender.com/swagger-ui.html](https://osfacil.onrender.com/swagger-ui.html)
 
 ---
 
-## Tecnologias e Dependências
+## ✅ Funcionalidades
 
-O projeto é construído com base nas seguintes tecnologias e bibliotecas-chave, conforme o `pom.xml`:
-
-| Tecnologia/Dependência | Grupo ID | Utilidade |
-| :--- | :--- | :--- |
-| **Spring Boot Web & JPA** | `org.springframework.boot` | Base para a API REST e Persistência de Dados. |
-| **Oracle JDBC** | `com.oracle.database.jdbc` | Conexão com o Banco de Dados Oracle (Produção). |
-| **Java JWT** | `com.auth0` | Geração e Validação de Tokens JWT para autenticação. |
-| **HATEOAS** | `org.springframework.boot` | Adição de Hipermídia (links) às respostas da API. |
-| **Dotenv-Java** | `io.github.cdimascio` | Carregamento seguro de Variáveis de Ambiente (`.env`). |
-| **Lombok** | `org.projectlombok` | Redução do código *boilerplate* (getters, setters, etc.). |
-| **Spring Boot Devtools** | `org.springframework.boot` | Recarregamento automático da aplicação durante o desenvolvimento. |
+- **CRUD Completo** para Clientes, Funcionários, Veículos e Produtos
+- **Controle de Ordens de Serviço** com acompanhamento de status e pagamento
+- **Autenticação JWT** com geração e validação de tokens de acesso
+- **HATEOAS** — respostas com hipermídia para navegação entre recursos
+- **Controle de acesso por perfil** — Cliente, Funcionário e Admin com permissões distintas
+- **Migração de banco com Flyway** — versionamento e rastreabilidade do schema
+- **Documentação automática** via SpringDoc OpenAPI (Swagger UI)
 
 ---
 
-## Como Iniciar o Projeto
-Siga os passos abaixo para clonar, configurar e rodar a API localmente.
+## 🛠️ Tecnologias Utilizadas
 
-### Pré-requisitos
-Certifique-se de ter instalado em sua máquina:
+| Tecnologia | Versão | Finalidade |
+|---|---|---|
+| Java | 21 | Linguagem principal |
+| Spring Boot | 3.4.4 | Base do projeto |
+| Spring Security | — | Autenticação e autorização |
+| Spring HATEOAS | — | Hipermídia nas respostas |
+| Spring Data JPA | — | Persistência de dados |
+| Oracle Database | 21c | Banco de dados em produção |
+| Flyway | — | Versionamento do schema |
+| JWT (Auth0) | 4.4.0 | Geração e validação de tokens |
+| SpringDoc OpenAPI | 2.8.6 | Documentação da API |
+| Lombok | 1.18.32 | Redução de boilerplate |
+| Dotenv Java | 3.0.0 | Variáveis de ambiente |
 
-* **Java Development Kit (JDK) 21** ou superior.
-* **Maven** (Gerenciador de Dependências) ou utilize o `mvnw` (Maven Wrapper) do projeto.
-* **Git** para clonar o repositório.
+---
 
-### 1. Clonar o Repositório
+## 🔐 Perfis de Acesso
 
+| Perfil | Permissões |
+|---|---|
+| `ROLE_CLIENTE` | Consulta de veículos e ordens de serviço, realização de pagamentos |
+| `ROLE_FUNCIONARIO` | Gerenciamento de clientes, veículos, produtos e ordens de serviço |
+| `ROLE_ADMIN` | Acesso completo a todos os recursos |
+
+---
+
+## 📦 Pré-requisitos
+
+Antes de rodar o projeto, certifique-se de ter instalado:
+
+- [JDK 21+](https://www.oracle.com/java/technologies/downloads/)
+- [Maven](https://maven.apache.org/) ou use o Maven Wrapper (`mvnw`) do projeto
+- [Git](https://git-scm.com/)
+- Banco de dados Oracle acessível (ou configure as variáveis de ambiente para apontar para o seu)
+
+---
+
+## 🚀 Como Rodar Localmente
+
+### 1. Clone o repositório
+```bash
 git clone https://github.com/renatosgk/Os-Facil--sprint2.git
+```
 
-### 2.Entrar na pasta do projeto
-
+### 2. Entre na pasta do projeto
+```bash
 cd Os-Facil--sprint2
+```
 
-### 3.Rodar o projeto
+### 3. Configure as variáveis de ambiente
+
+Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
+```env
+DATABASE_URL=jdbc:oracle:thin:@localhost:1521/xepdb1
+DATABASE_USERNAME=seu_usuario
+DATABASE_PASSWORD=sua_senha
+JWT_SECRET=sua_chave_secreta
+```
+
+### 4. Rode o projeto
+```bash
 ./mvnw spring-boot:run
+```
 
+A API estará disponível em `http://localhost:8080`  
+O Swagger estará disponível em `http://localhost:8080/swagger-ui.html`
 
+---
 
+## 📡 Endpoints Principais
 
+| Método | Endpoint | Descrição | Acesso |
+|---|---|---|---|
+| `POST` | `/register` | Cadastro de novo cliente | Público |
+| `POST` | `/login` | Autenticação e geração de token JWT | Público |
+| `GET` | `/clientes` | Lista todos os clientes | Funcionário, Admin |
+| `GET` | `/veiculos` | Lista todos os veículos | Cliente, Funcionário, Admin |
+| `GET` | `/ordem-servicos` | Lista todas as ordens de serviço | Cliente, Funcionário, Admin |
+| `POST` | `/ordem-servicos` | Cria uma nova ordem de serviço | Funcionário, Admin |
+| `GET` | `/produtos` | Lista todos os produtos | Funcionário, Admin |
+| `POST` | `/pagamentos` | Registra um pagamento | Cliente |
 
+> Para acesso aos endpoints protegidos, inclua o token JWT no header:  
+> `Authorization: Bearer {seu_token}`
 
-
+---
