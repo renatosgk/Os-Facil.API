@@ -1,9 +1,13 @@
 package com.oracle.OSfacil.infra.seguranca;
 
+import com.oracle.OSfacil.service.AutenticacaoService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,19 +24,29 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class ConfiguracaoSeguranca {
 
     private final FiltroTokenAcesso filtroTokenAcesso;
+    private final AutenticacaoService autenticacaoService;
 
-    public ConfiguracaoSeguranca(FiltroTokenAcesso filtroTokenAcesso) {
+    public ConfiguracaoSeguranca(FiltroTokenAcesso filtroTokenAcesso,
+                                 AutenticacaoService autenticacaoService) {
         this.filtroTokenAcesso = filtroTokenAcesso;
+        this.autenticacaoService = autenticacaoService;
     }
 
     @Bean
     public SecurityFilterChain filtrosSeguranca(HttpSecurity http) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(req -> req
-                        .requestMatchers("/login", "/atualizar-token", "/register").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/webjars/**").permitAll()
+                .sessionManagement(sm ->
+                        sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/login", "/register", "/register-funcionario", "/atualizar-token").permitAll()
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html",
+                                "/webjars/**"
+                        ).permitAll()
                         .requestMatchers("/clientes/**").hasAnyRole("FUNCIONARIO", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/veiculos/**").hasAnyRole("CLIENTE", "FUNCIONARIO", "ADMIN")
                         .requestMatchers("/veiculos/**").hasAnyRole("FUNCIONARIO", "ADMIN")
@@ -48,12 +62,20 @@ public class ConfiguracaoSeguranca {
     }
 
     @Bean
-    public PasswordEncoder encriptador() {
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(autenticacaoService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
     }
 }
