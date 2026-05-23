@@ -235,4 +235,8 @@ docker run -p 8081:8081 --env-file .env osfacil-api
 
 Projeto desenvolvido para a disciplina **Java Advanced — FIAP**
 
+**API em produção:** https://osfacil.onrender.com
+
+**Frontend em produção:** https://osfacil-angular.vercel.app
+
 **Vídeo de demonstração:** https://youtu.be/bFmv3Q1tFgw
