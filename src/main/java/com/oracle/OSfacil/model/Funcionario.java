@@ -33,6 +33,15 @@ public class Funcionario  implements UserDetails {
     private String login;
     @Column(nullable = false)
     private String senha;
+    @Column(length = 100)
+    private String cargo;
+
+    @Column(length = 100)
+    private String especialidade;
+
+    @Column(length = 50)
+    private String telefone;
+
     @Enumerated(EnumType.STRING)
     private Role role;
 

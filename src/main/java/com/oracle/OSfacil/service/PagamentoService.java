@@ -2,6 +2,7 @@ package com.oracle.OSfacil.service;
 
 import com.oracle.OSfacil.dto.request.PagamentoDTO;
 import com.oracle.OSfacil.dto.response.PagamentoResponseDTO;
+import com.oracle.OSfacil.infra.exeception.RegraDeNegocioException;
 import com.oracle.OSfacil.mapper.PagamentoMapper;
 import com.oracle.OSfacil.model.Cliente;
 import com.oracle.OSfacil.model.Pagamento;
@@ -33,7 +34,7 @@ public class PagamentoService {
         Pagamento pagamento = buscarPorId(id);
 
         if (!pagamento.getCliente().getId().equals(logado.getId())) {
-            throw new RuntimeException("Você não tem permissão para alterar este pagamento");
+            throw new RegraDeNegocioException("Sem permissao para alterar este pagamento");
         }
 
         pagamento.setFormaPagamento(dto.getFormaPagamento());
@@ -43,8 +44,7 @@ public class PagamentoService {
 
     @Transactional
     public void deletar(Long id) {
-        buscarPorId(id);
-        pagamentoRepository.deleteById(id);
+        pagamentoRepository.deleteById(buscarPorId(id).getId());
     }
 
     @Transactional(readOnly = true)
@@ -62,6 +62,6 @@ public class PagamentoService {
 
     private Pagamento buscarPorId(Long id) {
         return pagamentoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pagamento não encontrado com id: " + id));
+                .orElseThrow(() -> new RegraDeNegocioException("Pagamento nao encontrado com id: " + id));
     }
 }

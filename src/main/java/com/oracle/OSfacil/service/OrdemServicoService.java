@@ -4,6 +4,7 @@ import com.oracle.OSfacil.dto.request.OrdemServicoDTO;
 import com.oracle.OSfacil.dto.response.OrdemServicoResponseDTO;
 import com.oracle.OSfacil.enums.StatusOrdemServico;
 import com.oracle.OSfacil.enums.StatusPagamento;
+import com.oracle.OSfacil.infra.exeception.RegraDeNegocioException;
 import com.oracle.OSfacil.mapper.OrdemServicoMapper;
 import com.oracle.OSfacil.model.Cliente;
 import com.oracle.OSfacil.model.OrdemServico;
@@ -26,30 +27,31 @@ public class OrdemServicoService {
     @Transactional
     public OrdemServicoResponseDTO criar(OrdemServicoDTO dto) {
         Cliente cliente = clienteRepository.findById(dto.getClienteId())
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado com id: " + dto.getClienteId()));
+                .orElseThrow(() -> new RegraDeNegocioException(
+                        "Cliente nao encontrado com id: " + dto.getClienteId()));
 
-        OrdemServico ordemServico = ordemServicoMapper.toEntity(dto);
-        ordemServico.setCliente(cliente);
-        ordemServico.setStatusOrdemServico(StatusOrdemServico.ABERTA);
-        ordemServico.setStatusPagamento(StatusPagamento.PENDENTE);
+        OrdemServico os = ordemServicoMapper.toEntity(dto);
+        os.setCliente(cliente);
+        os.setStatusOrdemServico(StatusOrdemServico.ABERTA);
+        os.setStatusPagamento(StatusPagamento.PENDENTE);
 
-        return ordemServicoMapper.toResponseDTO(ordemServicoRepository.save(ordemServico));
+        return ordemServicoMapper.toResponseDTO(ordemServicoRepository.save(os));
     }
 
     @Transactional
     public OrdemServicoResponseDTO atualizar(OrdemServicoDTO dto, Long id) {
-        OrdemServico ordemServico = buscarPorId(id);
-
+        OrdemServico os = buscarPorId(id);
         Cliente cliente = clienteRepository.findById(dto.getClienteId())
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado com id: " + dto.getClienteId()));
+                .orElseThrow(() -> new RegraDeNegocioException(
+                        "Cliente nao encontrado com id: " + dto.getClienteId()));
 
-        ordemServico.setCliente(cliente);
-        ordemServico.setValor(dto.getValor());
-        ordemServico.setDescricao(dto.getDescricao());
-        ordemServico.setStatusPagamento(dto.getStatusPagamento());
-        ordemServico.setStatusOrdemServico(dto.getStatusOrdemServico());
+        os.setCliente(cliente);
+        os.setValor(dto.getValor());
+        os.setDescricao(dto.getDescricao());
+        os.setStatusPagamento(dto.getStatusPagamento());
+        os.setStatusOrdemServico(dto.getStatusOrdemServico());
 
-        return ordemServicoMapper.toResponseDTO(ordemServicoRepository.save(ordemServico));
+        return ordemServicoMapper.toResponseDTO(ordemServicoRepository.save(os));
     }
 
     @Transactional(readOnly = true)
@@ -65,6 +67,14 @@ public class OrdemServicoService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<OrdemServicoResponseDTO> listarPorCliente(Long clienteId) {
+        return ordemServicoRepository.findByCliente_Id(clienteId)
+                .stream()
+                .map(ordemServicoMapper::toResponseDTO)
+                .toList();
+    }
+
     @Transactional
     public void deletar(Long id) {
         ordemServicoRepository.delete(buscarPorId(id));
@@ -72,6 +82,7 @@ public class OrdemServicoService {
 
     private OrdemServico buscarPorId(Long id) {
         return ordemServicoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Ordem de serviço não encontrada com id: " + id));
+                .orElseThrow(() -> new RegraDeNegocioException(
+                        "Ordem de servico nao encontrada com id: " + id));
     }
 }

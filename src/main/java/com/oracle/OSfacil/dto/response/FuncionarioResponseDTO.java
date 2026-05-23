@@ -14,4 +14,7 @@ public class FuncionarioResponseDTO {
     private String login;
     private Role role;
     private BigDecimal salario;
+    private String cargo;
+    private String especialidade;
+    private String telefone;
 }

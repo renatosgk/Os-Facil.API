@@ -22,7 +22,7 @@ public class ClienteDTO extends RepresentationModel<ClienteDTO> {
     private String email;
     @NotBlank(message = "senhao nao pode estar vazio")
     private String senha;
-    private Set<Long> veiculoIds = new HashSet<>(); //n posso colocar @NotNull,pois n conseguiria criar o cliente nem o veiculo,mas o cliente pode existir sem o veiculo
+    private Set<Long> veiculoIds = new HashSet<>();
     @NotBlank(message = "O telefone não pode estar vazio")
     @Pattern(regexp = "\\d{10,11}", message = "Telefone deve ter 10 ou 11 dígitos")
     private String telefone;

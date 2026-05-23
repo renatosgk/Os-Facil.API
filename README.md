@@ -1,109 +1,246 @@
-# 🔧 OsFacil API — Sistema de Gerenciamento de Ordens de Serviço Automotivo
+# OS Fácil — Backend
 
-O **OsFacil API** é uma API RESTful desenvolvida em **Spring Boot**, voltada para o gerenciamento completo de ordens de serviço no setor automotivo. A aplicação cobre todo o ciclo operacional de uma oficina: cadastro de clientes, veículos, produtos, funcionários e o acompanhamento das ordens de serviço do início ao fim.
-
-🔗 **API em produção:** [https://osfacil.onrender.com](https://osfacil.onrender.com)  
-📄 **Documentação Swagger:** [https://osfacil.onrender.com/swagger-ui.html](https://osfacil.onrender.com/swagger-ui.html)
+API REST para gestão de ordens de serviço em oficinas automotivas.  
+Desenvolvida com **Spring Boot 3**, **Spring Security 6 + JWT**, **Oracle Database** e **Spring HATEOAS**.
 
 ---
 
-## ✅ Funcionalidades
-
-- **CRUD Completo** para Clientes, Funcionários, Veículos e Produtos
-- **Controle de Ordens de Serviço** com acompanhamento de status e pagamento
-- **Autenticação JWT** com geração e validação de tokens de acesso
-- **HATEOAS** — respostas com hipermídia para navegação entre recursos
-- **Controle de acesso por perfil** — Cliente, Funcionário e Admin com permissões distintas
-- **Migração de banco com Flyway** — versionamento e rastreabilidade do schema
-- **Documentação automática** via SpringDoc OpenAPI (Swagger UI)
-
----
-
-## 🛠️ Tecnologias Utilizadas
+## Tecnologias
 
 | Tecnologia | Versão | Finalidade |
 |---|---|---|
-| Java | 21 | Linguagem principal |
-| Spring Boot | 3.4.4 | Base do projeto |
-| Spring Security | — | Autenticação e autorização |
-| Spring HATEOAS | — | Hipermídia nas respostas |
+| Java | 22 | Linguagem principal |
+| Spring Boot | 3.5.6 | Framework base |
+| Spring Security | 6.x | Autenticação e autorização |
+| Spring HATEOAS | — | Hipermídia nas respostas REST |
 | Spring Data JPA | — | Persistência de dados |
-| Oracle Database | 21c | Banco de dados em produção |
+| Oracle Database | 19c+ | Banco de dados principal |
 | Flyway | — | Versionamento do schema |
 | JWT (Auth0) | 4.4.0 | Geração e validação de tokens |
-| SpringDoc OpenAPI | 2.8.6 | Documentação da API |
+| SpringDoc OpenAPI | 2.8.14 | Documentação Swagger UI |
 | Lombok | 1.18.32 | Redução de boilerplate |
-| Dotenv Java | 3.0.0 | Variáveis de ambiente |
+| Apache PDFBox | 3.0.3 | Exportação de OS em PDF |
+| Groq API (LLaMA 3.3 70B) | — | Assistente de mecânica com IA |
+| dotenv-java | 3.0.0 | Variáveis de ambiente |
+| Spring Actuator | — | Monitoramento da aplicação |
+| Docker Compose | — | Containerização |
 
 ---
 
-## 🔐 Perfis de Acesso
+## Pré-requisitos
 
-| Perfil | Permissões |
-|---|---|
-| `ROLE_CLIENTE` | Consulta de veículos e ordens de serviço, realização de pagamentos |
-| `ROLE_FUNCIONARIO` | Gerenciamento de clientes, veículos, produtos e ordens de serviço |
-| `ROLE_ADMIN` | Acesso completo a todos os recursos |
-
----
-
-## 📦 Pré-requisitos
-
-Antes de rodar o projeto, certifique-se de ter instalado:
-
-- [JDK 21+](https://www.oracle.com/java/technologies/downloads/)
-- [Maven](https://maven.apache.org/) ou use o Maven Wrapper (`mvnw`) do projeto
-- [Git](https://git-scm.com/)
-- Banco de dados Oracle acessível (ou configure as variáveis de ambiente para apontar para o seu)
+- **JDK 22** instalado e `JAVA_HOME` configurado
+- **Maven 3.9+** (ou usar o wrapper `./mvnw` incluído no projeto)
+- **Oracle Database** acessível (local ou nuvem FIAP)
+- Conta **Groq** para o assistente de IA (opcional)
 
 ---
 
-## 🚀 Como Rodar Localmente
+## Configuração
 
-### 1. Clone o repositório
-```bash
-git clone https://github.com/renatosgk/Os-Facil--sprint2.git
-```
+### 1. Variáveis de ambiente
 
-### 2. Entre na pasta do projeto
-```bash
-cd Os-Facil--sprint2
-```
+Crie um arquivo `.env` na raiz do projeto (mesmo nível do `pom.xml`):
 
-### 3. Configure as variáveis de ambiente
-
-Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
 ```env
-DATABASE_URL=jdbc:oracle:thin:@localhost:1521/xepdb1
+# Banco de dados Oracle
+DATABASE_URL=jdbc:oracle:thin:@oracle.fiap.com.br:1521:ORCL
 DATABASE_USERNAME=seu_usuario
 DATABASE_PASSWORD=sua_senha
-JWT_SECRET=sua_chave_secreta
+
+# JWT — chave secreta (mínimo 32 caracteres)
+JWT_SECRET=sua_chave_secreta_aqui_minimo_32_chars
+
+# Groq AI (assistente de mecânica)
+GROQ_API_KEY=gsk_sua_chave_groq
+
+# CORS (origens permitidas)
+CORS_ALLOWED_ORIGINS=http://localhost:4200,http://localhost:3000
 ```
 
-### 4. Rode o projeto
+> O arquivo `.env` é carregado automaticamente pelo `dotenv-java`.  
+> **Nunca o adicione ao controle de versão.**
+
+### 2. Porta
+
+A aplicação sobe na porta **8081** por padrão.  
+Para alterar, edite `src/main/resources/application.properties`:
+
+```properties
+server.port=8081
+```
+
+---
+
+## Executando
+
 ```bash
+# Com Maven Wrapper (recomendado)
 ./mvnw spring-boot:run
+
+# Ou com Maven instalado globalmente
+mvn spring-boot:run
 ```
 
-A API estará disponível em `http://localhost:8080`  
-O Swagger estará disponível em `http://localhost:8080/swagger-ui.html`
+- **API:** `http://localhost:8081`
+- **Swagger UI:** `http://localhost:8081/swagger-ui/index.html`
 
 ---
 
-## 📡 Endpoints Principais
+## Primeiro acesso — Admin padrão
 
-| Método | Endpoint | Descrição | Acesso |
+Ao iniciar pela primeira vez, o `DataInitializer` verifica se existe algum administrador.  
+Caso não exista, ele cria automaticamente:
+
+| Campo | Valor |
+|---|---|
+| E-mail | `admin@osfacil.com` |
+| Senha | `Admin@123` |
+| Role | `ROLE_ADMIN` |
+
+O inicializador também **detecta e corrige senhas em texto puro** já existentes no banco,  
+re-encodando-as com BCrypt automaticamente na inicialização.
+
+> Troque a senha após o primeiro login.
+
+---
+
+## Perfis de acesso
+
+| Role | Permissões |
+|---|---|
+| `ROLE_CLIENTE` | Ver suas próprias OS e pagamentos, consultar veículos, usar assistente de IA |
+| `ROLE_FUNCIONARIO` | Gestão completa de OS, clientes, veículos, produtos e pagamentos; assistente de IA |
+| `ROLE_ADMIN` | Tudo do funcionário + cadastrar e remover funcionários e administradores |
+
+O token JWT deve ser enviado no header de todas as requisições autenticadas:
+```
+Authorization: Bearer <token>
+```
+
+---
+
+## Endpoints
+
+### Autenticação
+
+| Método | Rota | Acesso | Descrição |
 |---|---|---|---|
-| `POST` | `/register` | Cadastro de novo cliente | Público |
-| `POST` | `/login` | Autenticação e geração de token JWT | Público |
-| `GET` | `/clientes` | Lista todos os clientes | Funcionário, Admin |
-| `GET` | `/veiculos` | Lista todos os veículos | Cliente, Funcionário, Admin |
-| `GET` | `/ordem-servicos` | Lista todas as ordens de serviço | Cliente, Funcionário, Admin |
-| `POST` | `/ordem-servicos` | Cria uma nova ordem de serviço | Funcionário, Admin |
-| `GET` | `/produtos` | Lista todos os produtos | Funcionário, Admin |
-| `POST` | `/pagamentos` | Registra um pagamento | Cliente |
+| POST | `/login` | Público | Login — retorna JWT + role |
+| POST | `/register` | Público | Cadastro de cliente |
+| POST | `/register-funcionario` | ADMIN | Cadastro de funcionário |
+| POST | `/register-admin` | ADMIN | Cadastro de administrador |
 
-> Para acesso aos endpoints protegidos, inclua o token JWT no header:  
-> `Authorization: Bearer {seu_token}`
+**Payload de login:**
+```json
+{
+  "email": "admin@osfacil.com",
+  "password": "Admin@123"
+}
+```
+
+**Resposta:**
+```json
+{
+  "tokenAcesso": "eyJhbGc...",
+  "nome": "Administrador",
+  "email": "admin@osfacil.com",
+  "role": "ROLE_ADMIN"
+}
+```
+
+### Ordens de Serviço
+
+| Método | Rota | Acesso | Descrição |
+|---|---|---|---|
+| GET | `/ordem-servicos/minhas` | Autenticado | OS do cliente logado (ou todas, para staff) |
+| GET | `/ordem-servicos` | FUNCIONARIO/ADMIN | Todas as OS |
+| GET | `/ordem-servicos/{id}` | Autenticado | Detalhes de uma OS |
+| POST | `/ordem-servicos` | FUNCIONARIO/ADMIN | Criar OS |
+| PUT | `/ordem-servicos/{id}` | FUNCIONARIO/ADMIN | Atualizar OS |
+| DELETE | `/ordem-servicos/{id}` | FUNCIONARIO/ADMIN | Remover OS |
+| GET | `/ordem-servicos/{id}/pdf` | FUNCIONARIO/ADMIN | Exportar OS em PDF |
+
+### Demais recursos
+
+| Recurso | Rota base | GET (cliente) | Mutações |
+|---|---|---|---|
+| Clientes | `/clientes` | Não | FUNCIONARIO/ADMIN |
+| Funcionários | `/funcionarios` | Não | FUNCIONARIO/ADMIN |
+| Veículos | `/veiculos` | Sim | FUNCIONARIO/ADMIN |
+| Produtos | `/produtos` | Não | FUNCIONARIO/ADMIN |
+| Itens de produto | `/item-produtos` | Não | FUNCIONARIO/ADMIN |
+| Pagamentos | `/pagamentos` | Sim | FUNCIONARIO/ADMIN |
+| Assistente IA | `/assistente/mecanica` | Sim | — |
 
 ---
+
+## Estrutura do projeto
+
+```
+src/main/java/com/oracle/OSfacil/
+├── controller/               # Endpoints REST
+│   ├── AuthController        # Login e registro
+│   ├── OrdemServicoController
+│   ├── ClienteController
+│   ├── FuncionarioController
+│   ├── VeiculoController
+│   ├── ProdutoController
+│   ├── ItemProdutoController
+│   ├── PagamentoController
+│   └── AssistenteMecanicaController
+├── service/                  # Regras de negócio
+├── repository/               # Spring Data JPA
+├── model/                    # Entidades JPA
+├── dto/
+│   ├── request/              # Payloads de entrada
+│   └── response/             # Payloads de saída (HATEOAS)
+├── mapper/                   # Conversão entity ↔ DTO
+├── enums/                    # Role, StatusOrdemServico, FormaPagamento, StatusPagamento
+└── infra/
+    ├── seguranca/            # Spring Security, JWT Filter, CORS
+    │   ├── ConfiguracaoSeguranca.java
+    │   └── FiltroTokenAcesso.java
+    ├── groq/                 # Integração Groq AI
+    ├── exeception/           # GlobalExceptionHandler
+    └── DataInitializer.java  # Bootstrap do primeiro admin
+```
+
+---
+
+## Migrações Flyway
+
+Os scripts de migração ficam em `src/main/resources/db/migration/`.  
+O Flyway aplica automaticamente as migrações pendentes ao subir a aplicação.
+
+---
+
+## Build para produção
+
+```bash
+./mvnw clean package -DskipTests
+java -jar target/OSfacil-0.0.1-SNAPSHOT.jar
+```
+
+---
+
+## Docker
+
+```bash
+docker build -t osfacil-api .
+docker run -p 8081:8081 --env-file .env osfacil-api
+```
+
+---
+
+## Autores
+
+| Nome | RM |
+|---|---|
+| Fabio H S Eduardo | 560416 |
+| Gabriel WU Castro | 560210 |
+| Renato Kenji Sugaki | 559810 |
+
+Projeto desenvolvido para a disciplina **Java Advanced — FIAP**
+
+**Vídeo de demonstração:** https://youtu.be/bFmv3Q1tFgw

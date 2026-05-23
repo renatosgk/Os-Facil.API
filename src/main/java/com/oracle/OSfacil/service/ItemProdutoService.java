@@ -1,8 +1,8 @@
 package com.oracle.OSfacil.service;
 
-
 import com.oracle.OSfacil.dto.request.ItemProdutoDTO;
 import com.oracle.OSfacil.dto.response.ItemProdutoResponseDTO;
+import com.oracle.OSfacil.infra.exeception.RegraDeNegocioException;
 import com.oracle.OSfacil.mapper.ItemProdutoMapper;
 import com.oracle.OSfacil.model.ItemProduto;
 import com.oracle.OSfacil.model.OrdemServico;
@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -29,18 +28,15 @@ public class ItemProdutoService {
 
     @Transactional
     public ItemProdutoResponseDTO criar(ItemProdutoDTO dto) {
-        Produto produto = produtoRepository.findById(dto.getProdutoId())
-                .orElseThrow(() -> new RuntimeException("Produto não encontrado com id: " + dto.getProdutoId()));
+        Produto produto = buscarProduto(dto.getProdutoId());
+        OrdemServico os = buscarOrdemServico(dto.getOrdemServicoId());
 
-        OrdemServico ordemServico = ordemServicoRepository.findById(dto.getOrdemServicoId())
-                .orElseThrow(() -> new RuntimeException("Ordem de serviço não encontrada com id: " + dto.getOrdemServicoId()));
+        ItemProduto item = itemProdutoMapper.toEntity(dto);
+        item.setProduto(produto);
+        item.setOrdemServico(os);
+        item.setSubtotal(dto.getValorUnitario().multiply(BigDecimal.valueOf(dto.getQuantidade())));
 
-        ItemProduto itemProduto = itemProdutoMapper.toEntity(dto);
-        itemProduto.setProduto(produto);
-        itemProduto.setOrdemServico(ordemServico);
-        itemProduto.setSubtotal(calcularSubtotal(dto.getValorUnitario(), dto.getQuantidade()));
-
-        return itemProdutoMapper.toResponseDTO(itemProdutoRepository.save(itemProduto));
+        return itemProdutoMapper.toResponseDTO(itemProdutoRepository.save(item));
     }
 
     @Transactional(readOnly = true)
@@ -58,21 +54,14 @@ public class ItemProdutoService {
 
     @Transactional
     public ItemProdutoResponseDTO atualizar(Long id, ItemProdutoDTO dto) {
-        ItemProduto itemProduto = buscarPorId(id);
+        ItemProduto item = buscarPorId(id);
+        item.setProduto(buscarProduto(dto.getProdutoId()));
+        item.setOrdemServico(buscarOrdemServico(dto.getOrdemServicoId()));
+        item.setQuantidade(dto.getQuantidade());
+        item.setValorUnitario(dto.getValorUnitario());
+        item.setSubtotal(dto.getValorUnitario().multiply(BigDecimal.valueOf(dto.getQuantidade())));
 
-        Produto produto = produtoRepository.findById(dto.getProdutoId())
-                .orElseThrow(() -> new RuntimeException("Produto não encontrado com id: " + dto.getProdutoId()));
-
-        OrdemServico ordemServico = ordemServicoRepository.findById(dto.getOrdemServicoId())
-                .orElseThrow(() -> new RuntimeException("Ordem de serviço não encontrada com id: " + dto.getOrdemServicoId()));
-
-        itemProduto.setProduto(produto);
-        itemProduto.setOrdemServico(ordemServico);
-        itemProduto.setQuantidade(dto.getQuantidade());
-        itemProduto.setValorUnitario(dto.getValorUnitario());
-        itemProduto.setSubtotal(calcularSubtotal(dto.getValorUnitario(), dto.getQuantidade()));
-
-        return itemProdutoMapper.toResponseDTO(itemProdutoRepository.save(itemProduto));
+        return itemProdutoMapper.toResponseDTO(itemProdutoRepository.save(item));
     }
 
     @Transactional
@@ -82,14 +71,17 @@ public class ItemProdutoService {
 
     private ItemProduto buscarPorId(Long id) {
         return itemProdutoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Item produto não encontrado com id: " + id));
+                .orElseThrow(() -> new RegraDeNegocioException("Item nao encontrado com id: " + id));
     }
 
-    private BigDecimal calcularSubtotal(BigDecimal valorUnitario, Integer quantidade) {
-        if (valorUnitario == null || quantidade == null) {
-            throw new RuntimeException("Valor unitário e quantidade são obrigatórios para calcular o subtotal");
-        }
-        return valorUnitario.multiply(BigDecimal.valueOf(quantidade));
+    private Produto buscarProduto(Long id) {
+        return produtoRepository.findById(id)
+                .orElseThrow(() -> new RegraDeNegocioException("Produto nao encontrado com id: " + id));
+    }
+
+    private OrdemServico buscarOrdemServico(Long id) {
+        return ordemServicoRepository.findById(id)
+                .orElseThrow(() -> new RegraDeNegocioException(
+                        "Ordem de servico nao encontrada com id: " + id));
     }
 }
-

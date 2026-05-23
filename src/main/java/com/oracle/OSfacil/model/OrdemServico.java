@@ -5,8 +5,10 @@ import com.oracle.OSfacil.enums.StatusOrdemServico;
 import com.oracle.OSfacil.enums.StatusPagamento;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -32,4 +34,8 @@ public class OrdemServico {
     private BigDecimal valor;
     @OneToMany(mappedBy = "ordemServico")
     private List<ItemProduto> itens;
+
+    @CreationTimestamp
+    @Column(name = "data_criacao", updatable = false)
+    private LocalDate dataCriacao;
 }

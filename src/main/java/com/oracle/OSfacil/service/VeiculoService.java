@@ -2,14 +2,15 @@ package com.oracle.OSfacil.service;
 
 import com.oracle.OSfacil.dto.request.VeiculoDTO;
 import com.oracle.OSfacil.dto.response.VeiculoResponseDTO;
+import com.oracle.OSfacil.infra.exeception.RegraDeNegocioException;
 import com.oracle.OSfacil.mapper.VeiculoMapper;
 import com.oracle.OSfacil.model.Cliente;
 import com.oracle.OSfacil.model.Veiculo;
 import com.oracle.OSfacil.repository.ClienteRepository;
 import com.oracle.OSfacil.repository.VeiculoRepository;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -24,16 +25,11 @@ public class VeiculoService {
     @Transactional
     public VeiculoResponseDTO criar(VeiculoDTO dto) {
         if (veiculoRepository.existsByPlaca(dto.getPlaca())) {
-            throw new RuntimeException("Já existe um veículo cadastrado com a placa: " + dto.getPlaca());
+            throw new RegraDeNegocioException("Placa ja cadastrada: " + dto.getPlaca());
         }
-
-        Cliente cliente = clienteRepository.findById(dto.getClienteId())
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado com id: " + dto.getClienteId()));
-
+        Cliente cliente = buscarCliente(dto.getClienteId());
         Veiculo veiculo = veiculoMapper.toEntity(dto);
         veiculo.setCliente(cliente);
-        cliente.getVeiculos().add(veiculo);
-
         return veiculoMapper.toResponseDTO(veiculoRepository.save(veiculo));
     }
 
@@ -42,15 +38,7 @@ public class VeiculoService {
         Veiculo veiculo = buscarPorId(id);
 
         if (!veiculo.getPlaca().equals(dto.getPlaca()) && veiculoRepository.existsByPlaca(dto.getPlaca())) {
-            throw new RuntimeException("Já existe um veículo cadastrado com a placa: " + dto.getPlaca());
-        }
-
-        Cliente clienteNovo = clienteRepository.findById(dto.getClienteId())
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado com id: " + dto.getClienteId()));
-
-        Cliente clienteAtual = veiculo.getCliente();
-        if (clienteAtual != null && !clienteAtual.getId().equals(clienteNovo.getId())) {
-            clienteAtual.getVeiculos().remove(veiculo);
+            throw new RegraDeNegocioException("Placa ja cadastrada: " + dto.getPlaca());
         }
 
         veiculo.setPlaca(dto.getPlaca());
@@ -58,8 +46,7 @@ public class VeiculoService {
         veiculo.setMarca(dto.getMarca());
         veiculo.setModelo(dto.getModelo());
         veiculo.setCor(dto.getCor());
-        veiculo.setCliente(clienteNovo);
-        clienteNovo.getVeiculos().add(veiculo);
+        veiculo.setCliente(buscarCliente(dto.getClienteId()));
 
         return veiculoMapper.toResponseDTO(veiculoRepository.save(veiculo));
     }
@@ -79,18 +66,16 @@ public class VeiculoService {
 
     @Transactional
     public void deletar(Long id) {
-        Veiculo veiculo = buscarPorId(id);
-
-        Cliente cliente = veiculo.getCliente();
-        if (cliente != null) {
-            cliente.getVeiculos().remove(veiculo);
-        }
-
-        veiculoRepository.delete(veiculo);
+        veiculoRepository.delete(buscarPorId(id));
     }
 
     private Veiculo buscarPorId(Long id) {
         return veiculoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Veículo não encontrado com id: " + id));
+                .orElseThrow(() -> new RegraDeNegocioException("Veiculo nao encontrado com id: " + id));
+    }
+
+    private Cliente buscarCliente(Long id) {
+        return clienteRepository.findById(id)
+                .orElseThrow(() -> new RegraDeNegocioException("Cliente nao encontrado com id: " + id));
     }
 }

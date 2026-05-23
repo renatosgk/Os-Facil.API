@@ -6,14 +6,12 @@ import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 
-public record RegisterFuncionarioDTO(
+public record RegisterAdminDTO(
         @NotBlank String nome,
         @NotBlank @Email String email,
         @NotBlank String password,
         @NotBlank String cpf,
         @NotBlank String login,
         @NotNull BigDecimal salario,
-        String cargo,
-        String especialidade,
-        String telefone
+        String cargo
 ) {}

@@ -3,6 +3,7 @@ package com.oracle.OSfacil.service;
 import com.oracle.OSfacil.dto.request.FuncionarioDTO;
 import com.oracle.OSfacil.dto.response.FuncionarioResponseDTO;
 import com.oracle.OSfacil.enums.Role;
+import com.oracle.OSfacil.infra.exeception.RegraDeNegocioException;
 import com.oracle.OSfacil.mapper.FuncionarioMapper;
 import com.oracle.OSfacil.model.Funcionario;
 import com.oracle.OSfacil.repository.FuncionarioRepository;
@@ -12,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -25,13 +25,13 @@ public class FuncionarioService {
     @Transactional
     public FuncionarioResponseDTO criar(FuncionarioDTO dto) {
         if (funcionarioRepository.existsByCpf(dto.getCpf())) {
-            throw new RuntimeException("CPF já cadastrado para outro funcionário!");
+            throw new RegraDeNegocioException("CPF ja cadastrado para outro funcionario");
         }
         if (funcionarioRepository.existsByEmail(dto.getEmail())) {
-            throw new RuntimeException("E-mail já cadastrado para outro funcionário!");
+            throw new RegraDeNegocioException("E-mail ja cadastrado para outro funcionario");
         }
         if (funcionarioRepository.existsByLogin(dto.getLogin())) {
-            throw new RuntimeException("Login já cadastrado para outro funcionário!");
+            throw new RegraDeNegocioException("Login ja cadastrado para outro funcionario");
         }
 
         Funcionario funcionario = funcionarioMapper.toEntity(dto);
@@ -46,13 +46,13 @@ public class FuncionarioService {
         Funcionario funcionario = buscarPorId(id);
 
         if (!funcionario.getCpf().equals(dto.getCpf()) && funcionarioRepository.existsByCpf(dto.getCpf())) {
-            throw new RuntimeException("CPF já cadastrado para outro funcionário!");
+            throw new RegraDeNegocioException("CPF ja cadastrado para outro funcionario");
         }
         if (!funcionario.getEmail().equals(dto.getEmail()) && funcionarioRepository.existsByEmail(dto.getEmail())) {
-            throw new RuntimeException("E-mail já cadastrado para outro funcionário!");
+            throw new RegraDeNegocioException("E-mail ja cadastrado para outro funcionario");
         }
         if (!funcionario.getLogin().equals(dto.getLogin()) && funcionarioRepository.existsByLogin(dto.getLogin())) {
-            throw new RuntimeException("Login já cadastrado para outro funcionário!");
+            throw new RegraDeNegocioException("Login ja cadastrado para outro funcionario");
         }
 
         funcionario.setNome(dto.getNome());
@@ -88,6 +88,6 @@ public class FuncionarioService {
 
     private Funcionario buscarPorId(Long id) {
         return funcionarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Funcionário não encontrado com id: " + id));
+                .orElseThrow(() -> new RegraDeNegocioException("Funcionario nao encontrado com id: " + id));
     }
 }

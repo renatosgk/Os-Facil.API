@@ -1,18 +1,15 @@
 package com.oracle.OSfacil.service;
 
-
 import com.oracle.OSfacil.dto.request.ClienteDTO;
 import com.oracle.OSfacil.dto.response.ClienteResponseDTO;
 import com.oracle.OSfacil.enums.Role;
+import com.oracle.OSfacil.infra.exeception.RegraDeNegocioException;
 import com.oracle.OSfacil.mapper.ClienteMapper;
 import com.oracle.OSfacil.model.Cliente;
 import com.oracle.OSfacil.model.Veiculo;
 import com.oracle.OSfacil.repository.ClienteRepository;
 import com.oracle.OSfacil.repository.VeiculoRepository;
-import lombok.AllArgsConstructor;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,25 +19,27 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor
-public class ClienteService implements UserDetailsService {
+@RequiredArgsConstructor
+public class ClienteService {
 
     private final ClienteRepository clienteRepository;
+    private final VeiculoRepository veiculoRepository;
     private final ClienteMapper clienteMapper;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public ClienteResponseDTO criar(ClienteDTO dto) {
         if (clienteRepository.existsByCpf(dto.getCpf())) {
-            throw new RuntimeException("CPF já cadastrado para outro cliente!");
+            throw new RegraDeNegocioException("CPF ja cadastrado para outro cliente");
         }
         if (clienteRepository.existsByEmail(dto.getEmail())) {
-            throw new RuntimeException("E-mail já cadastrado para outro cliente!");
+            throw new RegraDeNegocioException("E-mail ja cadastrado para outro cliente");
         }
 
         Cliente cliente = clienteMapper.toEntity(dto);
         cliente.setSenha(passwordEncoder.encode(dto.getSenha()));
         cliente.setRole(Role.ROLE_CLIENTE);
+        resolverVeiculos(dto, cliente);
 
         return clienteMapper.toResponseDTO(clienteRepository.save(cliente));
     }
@@ -57,8 +56,7 @@ public class ClienteService implements UserDetailsService {
     public ClienteResponseDTO listarPorId(Long id) {
         return clienteMapper.toResponseDTO(
                 clienteRepository.findByIdWithVeiculos(id)
-                        .orElseThrow(() -> new RuntimeException("Cliente não encontrado com id: " + id))
-        );
+                        .orElseThrow(() -> new RegraDeNegocioException("Cliente nao encontrado com id: " + id)));
     }
 
     @Transactional
@@ -66,11 +64,10 @@ public class ClienteService implements UserDetailsService {
         Cliente cliente = buscarPorId(id);
 
         if (!cliente.getCpf().equals(dto.getCpf()) && clienteRepository.existsByCpf(dto.getCpf())) {
-            throw new RuntimeException("CPF já cadastrado para outro cliente!");
+            throw new RegraDeNegocioException("CPF ja cadastrado para outro cliente");
         }
-
         if (!cliente.getEmail().equals(dto.getEmail()) && clienteRepository.existsByEmail(dto.getEmail())) {
-            throw new RuntimeException("E-mail já cadastrado para outro cliente!");
+            throw new RegraDeNegocioException("E-mail ja cadastrado para outro cliente");
         }
 
         cliente.setNome(dto.getNome());
@@ -91,14 +88,20 @@ public class ClienteService implements UserDetailsService {
         clienteRepository.delete(buscarPorId(id));
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return clienteRepository.findByEmailIgnoreCase(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Cliente não encontrado com email: " + username));
+    private void resolverVeiculos(ClienteDTO dto, Cliente cliente) {
+        if (dto.getVeiculoIds() == null || dto.getVeiculoIds().isEmpty()) {
+            return;
+        }
+        Set<Veiculo> veiculos = dto.getVeiculoIds().stream()
+                .map(vid -> veiculoRepository.findById(vid)
+                        .orElseThrow(() -> new RegraDeNegocioException("Veiculo nao encontrado: " + vid)))
+                .collect(Collectors.toSet());
+        veiculos.forEach(v -> v.setCliente(cliente));
+        cliente.setVeiculos(veiculos);
     }
 
     private Cliente buscarPorId(Long id) {
         return clienteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado com id: " + id));
+                .orElseThrow(() -> new RegraDeNegocioException("Cliente nao encontrado com id: " + id));
     }
 }

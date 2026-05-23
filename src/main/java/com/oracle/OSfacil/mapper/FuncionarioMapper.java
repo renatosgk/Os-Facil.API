@@ -21,6 +21,9 @@ public class FuncionarioMapper {
         dto.setRole(funcionario.getRole());
         dto.setLogin(funcionario.getLogin());
         dto.setSalario(funcionario.getSalario());
+        dto.setCargo(funcionario.getCargo());
+        dto.setEspecialidade(funcionario.getEspecialidade());
+        dto.setTelefone(funcionario.getTelefone());
         return dto;
     }
 
