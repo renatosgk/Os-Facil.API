@@ -41,7 +41,6 @@ public class OrdemServicoController {
         if (principal instanceof Cliente cliente) {
             resultado = ordemServicoService.listarPorCliente(cliente.getId());
         } else {
-            // FUNCIONARIO / ADMIN acessando o endpoint recebem todas as OS
             resultado = ordemServicoService.listarTodos();
         }
 
@@ -123,7 +122,7 @@ public class OrdemServicoController {
     }
 
     @GetMapping(value = "/{id}/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
-    @PreAuthorize("hasAnyRole('ROLE_FUNCIONARIO','ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<byte[]> exportarPdf(@PathVariable Long id) {
 
         byte[] pdf = pdfExportService.exportar(id);
