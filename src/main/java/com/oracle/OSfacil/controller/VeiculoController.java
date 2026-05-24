@@ -43,7 +43,7 @@ public class VeiculoController {
 
         EntityModel<VeiculoResponseDTO> resource = EntityModel.of(novoVeiculo,
                 linkTo(methodOn(VeiculoController.class).listarPorId(novoVeiculo.getId())).withSelfRel(),
-                linkTo(methodOn(VeiculoController.class).atualizar(novoVeiculo.getId(), null)).withRel("atualizar"),
+                linkTo(methodOn(VeiculoController.class).atualizar(novoVeiculo.getId(), null, null)).withRel("atualizar"),
                 linkTo(methodOn(VeiculoController.class).deletar(novoVeiculo.getId())).withRel("deletar"),
                 linkTo(methodOn(VeiculoController.class).listarTodos()).withRel("listar_todos")
         );
@@ -59,7 +59,7 @@ public class VeiculoController {
                 .stream()
                 .map(veiculo -> EntityModel.of(veiculo,
                         linkTo(methodOn(VeiculoController.class).listarPorId(veiculo.getId())).withSelfRel(),
-                        linkTo(methodOn(VeiculoController.class).atualizar(veiculo.getId(), null)).withRel("atualizar"),
+                        linkTo(methodOn(VeiculoController.class).atualizar(veiculo.getId(), null, null)).withRel("atualizar"),
                         linkTo(methodOn(VeiculoController.class).deletar(veiculo.getId())).withRel("deletar")
                 ))
                 .toList();
@@ -78,7 +78,7 @@ public class VeiculoController {
 
         EntityModel<VeiculoResponseDTO> resource = EntityModel.of(veiculo,
                 linkTo(methodOn(VeiculoController.class).listarPorId(id)).withSelfRel(),
-                linkTo(methodOn(VeiculoController.class).atualizar(id, null)).withRel("atualizar"),
+                linkTo(methodOn(VeiculoController.class).atualizar(id, null, null)).withRel("atualizar"),
                 linkTo(methodOn(VeiculoController.class).deletar(id)).withRel("deletar"),
                 linkTo(methodOn(VeiculoController.class).listarTodos()).withRel("listar_todos")
         );
