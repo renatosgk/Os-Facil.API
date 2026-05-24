@@ -2,6 +2,7 @@ package com.oracle.OSfacil.controller;
 
 import com.oracle.OSfacil.dto.request.OrdemServicoDTO;
 import com.oracle.OSfacil.dto.response.OrdemServicoResponseDTO;
+import com.oracle.OSfacil.infra.exeception.RegraDeNegocioException;
 import com.oracle.OSfacil.model.Cliente;
 import com.oracle.OSfacil.service.OrdemServicoService;
 import com.oracle.OSfacil.service.PdfExportService;
@@ -54,15 +55,22 @@ public class OrdemServicoController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ROLE_FUNCIONARIO','ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<EntityModel<OrdemServicoResponseDTO>> criar(
-            @RequestBody @Valid OrdemServicoDTO dto) {
+            @RequestBody @Valid OrdemServicoDTO dto,
+            @AuthenticationPrincipal UserDetails principal) {
+
+        if (principal instanceof Cliente cliente) {
+            dto.setClienteId(cliente.getId());
+        } else if (dto.getClienteId() == null) {
+            throw new RegraDeNegocioException("O Id do cliente não pode ser vazio");
+        }
 
         OrdemServicoResponseDTO ordemNova = ordemServicoService.criar(dto);
 
         EntityModel<OrdemServicoResponseDTO> resource = EntityModel.of(ordemNova,
                 linkTo(methodOn(OrdemServicoController.class).buscar(ordemNova.getId())).withSelfRel(),
-                linkTo(methodOn(OrdemServicoController.class).atualizar(ordemNova.getId(), null)).withRel("atualizar"),
+                linkTo(methodOn(OrdemServicoController.class).atualizar(ordemNova.getId(), null, null)).withRel("atualizar"),
                 linkTo(methodOn(OrdemServicoController.class).deletar(ordemNova.getId())).withRel("deletar"));
 
         URI location = linkTo(methodOn(OrdemServicoController.class).buscar(ordemNova.getId())).toUri();
@@ -77,7 +85,7 @@ public class OrdemServicoController {
                 .stream()
                 .map(os -> EntityModel.of(os,
                         linkTo(methodOn(OrdemServicoController.class).buscar(os.getId())).withSelfRel(),
-                        linkTo(methodOn(OrdemServicoController.class).atualizar(os.getId(), null)).withRel("atualizar"),
+                        linkTo(methodOn(OrdemServicoController.class).atualizar(os.getId(), null, null)).withRel("atualizar"),
                         linkTo(methodOn(OrdemServicoController.class).deletar(os.getId())).withRel("deletar")))
                 .toList();
 
@@ -93,7 +101,7 @@ public class OrdemServicoController {
 
         EntityModel<OrdemServicoResponseDTO> resource = EntityModel.of(os,
                 linkTo(methodOn(OrdemServicoController.class).buscar(id)).withSelfRel(),
-                linkTo(methodOn(OrdemServicoController.class).atualizar(id, null)).withRel("atualizar"),
+                linkTo(methodOn(OrdemServicoController.class).atualizar(id, null, null)).withRel("atualizar"),
                 linkTo(methodOn(OrdemServicoController.class).deletar(id)).withRel("deletar"));
 
         return ResponseEntity.ok(resource);
@@ -103,7 +111,14 @@ public class OrdemServicoController {
     @PreAuthorize("hasAnyRole('ROLE_FUNCIONARIO','ROLE_ADMIN')")
     public ResponseEntity<EntityModel<OrdemServicoResponseDTO>> atualizar(
             @PathVariable Long id,
-            @Valid @RequestBody OrdemServicoDTO dto) {
+            @Valid @RequestBody OrdemServicoDTO dto,
+            @AuthenticationPrincipal UserDetails principal) {
+
+        if (principal instanceof Cliente cliente) {
+            dto.setClienteId(cliente.getId());
+        } else if (dto.getClienteId() == null) {
+            throw new RegraDeNegocioException("O Id do cliente não pode ser vazio");
+        }
 
         OrdemServicoResponseDTO atualizado = ordemServicoService.atualizar(dto, id);
 

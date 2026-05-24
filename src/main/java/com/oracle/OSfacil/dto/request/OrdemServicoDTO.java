@@ -12,7 +12,6 @@ import java.math.BigDecimal;
 
 @Data
 public class OrdemServicoDTO {
-    @NotNull(message = "O Id do cliente não pode ser vazio")
     private Long clienteId;
 
     private Long funcionarioId;
